@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Liên hệ - Tên Bạn</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    #formStatus { font-weight:600; margin-left:8px; transition:opacity .18s; }
+    .toast { position: fixed; right: 20px; bottom: 20px; background: #111; color: #fff; padding: 10px 14px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); opacity: 0; transform: translateY(6px); transition: opacity .18s, transform .18s; z-index: 9999; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .spinner { border: 2px solid rgba(0,0,0,0.08); border-left-color: #fff; width: 14px; height: 14px; border-radius: 50%; display:inline-block; vertical-align:middle; margin-right:6px; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+    <a class="logo" href="index.html">Quốc Lĩnh</a>
+      <nav class="nav">
+        <a href="index.html">Trang chủ</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="contact.html" class="active">Liên hệ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page contact-page">
+      <h1>Liên hệ</h1>
+      <p>Gửi tin nhắn cho tôi bằng biểu mẫu bên dưới hoặc qua email: <a href="xmk9854@gmail.com">xmk9854@gmail.com</a></p>
+
+      <form id="contactForm" class="contact-form" novalidate>
+        <label>
+          Tên
+          <input type="text" name="name" id="name" required maxlength="120" />
+        </label>
+
+        <label>
+          Email
+          <input type="email" name="email" id="email" required maxlength="254" />
+        </label>
+
+        <!-- honeypot -->
+        <label style="display:none">
+          Nếu bạn là người thật, hãy bỏ trống trường này
+          <input type="text" name="website" id="website" autocomplete="off" />
+          <!-- honeypot: bots thường điền, người dùng không thấy -->
+        </label>
+
+        <label>
+          Nội dung
+          <textarea name="message" id="message" rows="6" required maxlength="5000"></textarea>
+        </label>
+
+        <div class="form-row" style="display:flex;gap:0.5rem;align-items:center;">
+          <button type="submit" class="btn" id="submitBtn">Gửi</button>
+          <div id="formStatus" role="status" aria-live="polite" style="color:#111;"></div>
+        </div>
+      </form>
+    </section>
+  </main>
+
+   <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <p>&copy; <span id="year"></span> Huỳnh Quốc Lĩnh. Mọi quyền giữ.</p>
+      </div>
+
+
+      <div class="footer-right social">
+        <a href="https://www.facebook.com/huynh.quoc.linh.4831?locale=vi_VN" target="_blank" rel="noopener" aria-label="Facebook">
+          <!-- Facebook SVG -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.07C22 6.49 17.52 2 11.94 2S1.88 6.49 1.88 12.07C1.88 17.02 5.62 21.09 10.38 21.93v-6.95H7.9v-2.99h2.48V9.82c0-2.46 1.46-3.82 3.7-3.82 1.07 0 2.19.19 2.19.19v2.41h-1.24c-1.22 0-1.6.76-1.6 1.54v1.85h2.72l-.44 2.99h-2.28V21.93C18.38 21.09 22 17.02 22 12.07z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@yourprofile" target="_blank" rel="noopener" aria-label="TikTok">
+          <!-- TikTok SVG -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2v12.2A4.8 4.8 0 1 1 9 9.2V12a6 6 0 1 0 3 5.2V2h-0z"/></svg>
+        </a>
+        
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" aria-hidden="true"></div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    // If backend is on other origin, set window.API_BASE before loading contact-handler.js:
+    // window.API_BASE = 'https://api.yourdomain.com/api/contact';
+  </script>
+
+  <script src="contact-handler.js"></script>
+</body>
+</html>

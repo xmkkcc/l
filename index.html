@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trang chủ - Quốc Lĩnh</title>
+  <meta name="description" content="Website cá nhân của Quốc Lĩnh — portfolio, thông tin liên hệ và tin tức." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Quốc Lĩnh</a>
+      <button id="navToggle" class="nav-toggle" aria-label="Mở menu">☰</button>
+      <nav class="nav" id="mainNav">
+        <a href="index.html">Trang chủ</a>
+        <a href="about.html">Giới thiệu</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="contact.html">Liên hệ</a>
+      </nav>
+    </div>
+    <!-- Bắt đầu đoạn code đồng hồ -->
+<div id="clock-box" style="
+    text-align: center; 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+    padding: 10px; 
+    background: #1a1a1a; 
+    border-radius: 5px; 
+    color: #ffffff; 
+    max-width: 200px; 
+    margin: 10px auto;
+    box-shadow: 0 2px 7,5px rgba(0,0,0,0.3);">
+    
+    <div id="clock-time" style="font-size: 20px; font-weight: bold; color: #00ffcc;">00:00:00</div>
+    <div id="clock-date" style="font-size: 18px; margin-top: 5px; color: #bbbbbb;">Đang tải...</div>
+</div>
+
+<script>
+    function startClock() {
+        const update = () => {
+            const now = new Date();
+            
+            // Định dạng thời gian
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock-time').innerText = `${h}:${m}:${s}`;
+
+            // Định dạng ngày tháng tiếng Việt
+            const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            const dayName = days[now.getDay()];
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+
+            document.getElementById('clock-date').innerText = `${dayName}, ngày ${day}/${month}/${year}`;
+        };
+        
+        setInterval(update, 1000);
+        update();
+    }
+    startClock();
+</script>
+<!-- Kết thúc đoạn code đồng hồ -->
+
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Xin chào, mình là Huỳnh Quốc Lĩnh</h1>
+        <p>Tôi là Huỳnh Quốc Lĩnh . Chào mừng đến với website cá nhân của tôi.</p>
+        <p><a class="btn" href="portfolio.html">Xem Portfolio</a> <a class="btn alt" href="about.html">Tìm hiểu thêm</a></p>
+      </div>
+    </section>
+
+    <section class="intro container">
+      <h2>Những gì tôi làm</h2>
+      <p>Tóm tắt ngắn về kỹ năng . Ví dụ: phát triển web, thiết kế UI/UX, viết nội dung, v.v.</p>
+      <div class="cards">
+        <article class="card">
+          <h3><img src="link_anh_cua_ban.jpg" alt="Mô tả hình ảnh" width="500" height="300">
+</h3>
+          <p>Mô tả ngắn.</p>
+        </article>
+        <article class="card">
+          <h3><img src="link_anh_cua_ban.jpg" alt="Mô tả hình ảnh" width="500" height="300"></h3>
+          <p>Mô tả ngắn.</p>
+        </article>
+        <article class="card">
+          <h3><img src="link_anh_cua_ban.jpg" alt="Mô tả hình ảnh" width="500" height="300"></h3>
+          <p>Mô tả ngắn.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <p>&copy; <span id="year"></span> Huỳnh Quốc Lĩnh. Mọi quyền giữ.</p>
+      </div>
+
+
+      <div class="footer-right social">
+        <a href="https://www.facebook.com/huynh.quoc.linh.4831?locale=vi_VN" target="_blank" rel="noopener" aria-label="Facebook">
+          <!-- Facebook SVG -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.07C22 6.49 17.52 2 11.94 2S1.88 6.49 1.88 12.07C1.88 17.02 5.62 21.09 10.38 21.93v-6.95H7.9v-2.99h2.48V9.82c0-2.46 1.46-3.82 3.7-3.82 1.07 0 2.19.19 2.19.19v2.41h-1.24c-1.22 0-1.6.76-1.6 1.54v1.85h2.72l-.44 2.99h-2.28V21.93C18.38 21.09 22 17.02 22 12.07z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@yourprofile" target="_blank" rel="noopener" aria-label="TikTok">
+          <!-- TikTok SVG -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2v12.2A4.8 4.8 0 1 1 9 9.2V12a6 6 0 1 0 3 5.2V2h-0z"/></svg>
+        </a>
+        
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
