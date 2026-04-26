@@ -1,6 +1,10 @@
 // contact-handler.js
+// EmailJS Configuration
+// Initialize EmailJS with your public key from https://dashboard.emailjs.com
+// Replace 'YOUR_PUBLIC_KEY' with your actual EmailJS public key
+emailjs.init('DGeIcEQcKgYOe4xLu');
+
 (function () {
-  const API_BASE = window.API_BASE || '/api/contact';
   const form = document.getElementById('contactForm');
   if (!form) return;
 
@@ -8,26 +12,31 @@
   const statusEl = document.getElementById('formStatus');
   const toast = document.getElementById('toast');
 
-  function showToast(text, timeout = 3500) {
+  // EmailJS configuration
+  const SERVICE_ID = 'service_tgytz9c';
+  const TEMPLATE_ID = 'template_k6k7jhc';
+  const TO_EMAIL = 'xmk9854@gmail.com';
+
+  // Utility functions
+  const showToast = (text, timeout = 3500) => {
     toast.textContent = text;
     toast.classList.add('show');
-    toast.setAttribute('aria-hidden','false');
+    toast.setAttribute('aria-hidden', 'false');
     setTimeout(() => {
       toast.classList.remove('show');
-      toast.setAttribute('aria-hidden','true');
+      toast.setAttribute('aria-hidden', 'true');
     }, timeout);
-  }
+  };
 
-  function setStatus(text, isError = false) {
+  const setStatus = (text, isError = false) => {
     statusEl.textContent = text;
     statusEl.style.color = isError ? '#b00020' : '#118c4f';
-  }
+  };
 
-  function validateEmail(email) {
-    return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  form.addEventListener('submit', async function (e) {
+  // Form submission handler
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     setStatus('', false);
 
@@ -38,8 +47,10 @@
     const message = form.querySelector('#message').value.trim();
     const honeypot = form.querySelector('#website').value.trim();
 
-    if (honeypot) return; // bot detected silently
+    // Honeypot check for bots
+    if (honeypot) return;
 
+    // Validation
     if (!name || !email || !message) {
       setStatus('Vui lòng điền đầy đủ tên, email và nội dung.', true);
       return;
@@ -53,52 +64,36 @@
       return;
     }
 
+    // Disable button and show loading
     submitBtn.disabled = true;
-    const origHtml = submitBtn.innerHTML;
+    const originalHtml = submitBtn.innerHTML;
     submitBtn.innerHTML = '<span class="spinner"></span>Đang gửi...';
 
-    const payload = { name, email, phone, subject, message };
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
     try {
-      const res = await fetch(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-        credentials: 'same-origin'
+      // Send email via EmailJS
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+        to_email: TO_EMAIL,
+        from_name: name,
+        from_email: email,
+        phone: phone || 'N/A',
+        subject: subject || 'No subject',
+        message,
+        reply_to: email
       });
 
-      clearTimeout(timeout);
-
-      const data = (res.headers.get('content-type') || '').includes('application/json')
-        ? await res.json()
-        : {};
-
-      if (res.ok) {
-        setStatus(data.message || 'Gửi thành công! Cảm ơn bạn.');
-        showToast('Gửi thành công!');
-        form.reset();
-      } else {
-        const errMsg = data.error || 'Có lỗi xảy ra khi gửi. Vui lòng thử lại.';
-        setStatus(errMsg, true);
-        showToast('Lỗi: ' + errMsg, 5000);
-        console.error('Contact submit error', data);
-      }
+      // Success
+      setStatus('Gửi thành công! Cảm ơn bạn.', false);
+      showToast('Gửi thành công!');
+      form.reset();
     } catch (err) {
-      if (err.name === 'AbortError') {
-        setStatus('Yêu cầu quá thời gian. Vui lòng thử lại.', true);
-        showToast('Yêu cầu quá thời gian.', 4000);
-      } else {
-        setStatus('Lỗi kết nối. Vui lòng thử lại sau.', true);
-        showToast('Lỗi kết nối.', 4000);
-        console.error(err);
-      }
+      console.error('EmailJS Error:', err);
+      const errorMessage = err.text || 'Không thể gửi email';
+      setStatus('Lỗi kết nối. Vui lòng thử lại sau.', true);
+      showToast(`Lỗi: ${errorMessage}`, 5000);
     } finally {
+      // Restore button
       submitBtn.disabled = false;
-      submitBtn.innerHTML = origHtml;
+      submitBtn.innerHTML = originalHtml;
     }
   });
 })();

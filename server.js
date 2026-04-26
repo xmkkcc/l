@@ -1,131 +1,44 @@
-// server.js
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const cors = require('cors');
-const nodemailer = require('nodemailer');
+#!/usr/bin/env node
+/**
+ * GITHUB PAGES DEPLOYMENT NOTICE
+ * 
+ * This server.js file is NOT needed for GitHub Pages deployment.
+ * 
+ * GitHub Pages only hosts static files (HTML, CSS, JS).
+ * It cannot run Node.js servers.
+ * 
+ * The contact form now uses EmailJS (client-side) instead.
+ * See GITHUB_PAGES_SETUP.md for configuration instructions.
+ * 
+ * WHAT TO DO:
+ * 1. Read GITHUB_PAGES_SETUP.md for EmailJS setup
+ * 2. Update contact-handler.js with your EmailJS credentials
+ * 3. Delete this file (server.js) - it's no longer needed
+ * 4. Push your site to GitHub
+ * 
+ * FILES TO DELETE BEFORE DEPLOYING:
+ * - server.js (this file)
+ * - package.json (unless you want local development)
+ * - node_modules/ (if it exists)
+ * - .env (environment variables)
+ * - .gitignore (optional, you can keep it)
+ * 
+ * FILES TO KEEP:
+ * - index.html, about.html, contact.html, portfolio.html, media.html
+ * - styles.css, script.js, contact-handler.js
+ * - GITHUB_PAGES_SETUP.md
+ */
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-app.set('trust proxy', 1);
-
-// Middlewares
-app.use(helmet());
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-
-// Serve static files (HTML, CSS, JS) without exposing dotfiles
-app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
-
-// Rate limit
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10,
-  message: { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau.' }
-});
-app.use('/api/', limiter);
-
-// Simple email validation
-function isValidEmail(email) {
-  return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function escapeHtml(str = '') {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// Configure transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-
-const requiredEnv = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'TO_EMAIL'];
-const missingEnv = requiredEnv.filter(name => !process.env[name]);
-if (missingEnv.length) {
-  console.warn(`Warning: Missing required email env vars: ${missingEnv.join(', ')}. Contact emails will not be delivered until configured.`);
-} else {
-  transporter.verify().then(() => {
-    console.log('Email transporter configured correctly.');
-  }).catch(err => {
-    console.warn('Email transporter verification failed:', err.message || err);
-  });
-}
-
-// Health
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-// Contact endpoint
-app.post('/api/contact', async (req, res) => {
-  try {
-    const { name, email, phone, subject, message, website, recaptchaToken } = req.body || {};
-
-    // honeypot check
-    if (website) return res.status(400).json({ error: 'Bad request' });
-
-    if (!name || !email || !message) {
-      return res.status(400).json({ error: 'Vui lòng điền tên, email và nội dung.' });
-    }
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ error: 'Email không hợp lệ.' });
-    }
-    if (message.length > 5000) {
-      return res.status(400).json({ error: 'Nội dung quá dài.' });
-    }
-
-    // Optional: verify reCAPTCHA server-side if you configure RECAPTCHA_SECRET
-    if (recaptchaToken && process.env.RECAPTCHA_SECRET) {
-      try {
-        const fetch = global.fetch || require('node-fetch');
-        const params = new URLSearchParams();
-        params.append('secret', process.env.RECAPTCHA_SECRET);
-        params.append('response', recaptchaToken);
-        params.append('remoteip', req.ip);
-        const r = await fetch('https://www.google.com/recaptcha/api/siteverify', { method: 'POST', body: params });
-        const j = await r.json();
-        if (!j.success || (j.score !== undefined && j.score < 0.4)) {
-          return res.status(400).json({ error: 'Không vượt qua kiểm tra chống spam.' });
-        }
-      } catch (err) {
-        console.warn('reCAPTCHA verify error', err);
-      }
-    }
-
-    const mailOptions = {
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: process.env.TO_EMAIL, // set your receiving email in .env
-      subject: subject ? `Liên hệ từ website: ${subject}` : `Liên hệ từ website: ${name}`,
-      text: `Tên: ${name}\nEmail: ${email}\nSố điện thoại: ${phone || 'Không cung cấp'}\nChủ đề: ${subject || 'Không có'}\n\n${message}`,
-      html: `<p><strong>Tên:</strong> ${escapeHtml(name)}</p>
-             <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-             <p><strong>Số điện thoại:</strong> ${escapeHtml(phone || 'Không cung cấp')}</p>
-             <p><strong>Chủ đề:</strong> ${escapeHtml(subject || 'Không có')}</p>
-             <p><strong>Nội dung:</strong></p>
-             <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    return res.json({ success: true, message: 'Gửi thành công. Cảm ơn bạn!' });
-  } catch (err) {
-    console.error('Error sending contact email:', err);
-    return res.status(500).json({ error: 'Có lỗi khi gửi email. Vui lòng thử lại sau.' });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+console.log(`
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         GITHUB PAGES DEPLOYMENT DETECTED                  ║
+║                                                            ║
+║  This server.js is not needed for GitHub Pages!           ║
+║  Your site now uses EmailJS for contact emails.           ║
+║                                                            ║
+║  📖 Read GITHUB_PAGES_SETUP.md for instructions           ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`);
 });
