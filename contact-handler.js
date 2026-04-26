@@ -33,6 +33,8 @@
 
     const name = form.querySelector('#name').value.trim();
     const email = form.querySelector('#email').value.trim();
+    const phone = form.querySelector('#phone').value.trim();
+    const subject = form.querySelector('#subject').value.trim();
     const message = form.querySelector('#message').value.trim();
     const honeypot = form.querySelector('#website').value.trim();
 
@@ -55,7 +57,7 @@
     const origHtml = submitBtn.innerHTML;
     submitBtn.innerHTML = '<span class="spinner"></span>Đang gửi...';
 
-    const payload = { name, email, message };
+    const payload = { name, email, phone, subject, message };
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);

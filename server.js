@@ -1,5 +1,6 @@
 // server.js
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -8,12 +9,16 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.set('trust proxy', 1);
 
 // Middlewares
 app.use(helmet());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+
+// Serve static files (HTML, CSS, JS) without exposing dotfiles
+app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
 
 // Rate limit
 const limiter = rateLimit({
@@ -48,13 +53,25 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const requiredEnv = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'TO_EMAIL'];
+const missingEnv = requiredEnv.filter(name => !process.env[name]);
+if (missingEnv.length) {
+  console.warn(`Warning: Missing required email env vars: ${missingEnv.join(', ')}. Contact emails will not be delivered until configured.`);
+} else {
+  transporter.verify().then(() => {
+    console.log('Email transporter configured correctly.');
+  }).catch(err => {
+    console.warn('Email transporter verification failed:', err.message || err);
+  });
+}
+
 // Health
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Contact endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    const { name, email, message, website, recaptchaToken } = req.body || {};
+    const { name, email, phone, subject, message, website, recaptchaToken } = req.body || {};
 
     // honeypot check
     if (website) return res.status(400).json({ error: 'Bad request' });
@@ -90,10 +107,12 @@ app.post('/api/contact', async (req, res) => {
     const mailOptions = {
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: process.env.TO_EMAIL, // set your receiving email in .env
-      subject: `Liên hệ từ website: ${name}`,
-      text: `Tên: ${name}\nEmail: ${email}\n\n${message}`,
+      subject: subject ? `Liên hệ từ website: ${subject}` : `Liên hệ từ website: ${name}`,
+      text: `Tên: ${name}\nEmail: ${email}\nSố điện thoại: ${phone || 'Không cung cấp'}\nChủ đề: ${subject || 'Không có'}\n\n${message}`,
       html: `<p><strong>Tên:</strong> ${escapeHtml(name)}</p>
              <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+             <p><strong>Số điện thoại:</strong> ${escapeHtml(phone || 'Không cung cấp')}</p>
+             <p><strong>Chủ đề:</strong> ${escapeHtml(subject || 'Không có')}</p>
              <p><strong>Nội dung:</strong></p>
              <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`
     };
